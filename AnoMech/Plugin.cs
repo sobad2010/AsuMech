@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AnoMech.Core;
 using AnoMech.Core.Game;
 using AnoMech.Core.Native.Implementations;
@@ -8,11 +9,16 @@ using AnoMech.Core.Native.Interfaces;
 using AnoMech.Multiplayer;
 using AnoMech.Windows;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui.NamePlate;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Game.DutyState;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using ISigScanner = Dalamud.Game.ISigScanner;
+using ITargetManager = Dalamud.Game.ClientState.Objects.ITargetManager;
 using Lumina.Excel.Sheets;
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
@@ -38,6 +44,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDutyState DutyState { get; private set; } = null!;
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
     [PluginService] internal static IGameConfig GameConfig { get; private set; } = null!;
+    [PluginService] internal static INamePlateGui NamePlateGui { get; private set; } = null!;
 
     private const string CommandName = "/anomech";
     private const string CommandAlias = "/ano";
@@ -120,6 +127,7 @@ public sealed class Plugin : IDalamudPlugin
 
             PluginInterface.UiBuilder.Draw += windowSystem.Draw;
             Framework.Update += OnFrameworkUpdate;
+            NamePlateGui.OnDataUpdate += OnNamePlateDataUpdate;
 
             PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
             PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
@@ -182,6 +190,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         PluginInterface.UiBuilder.Draw -= windowSystem.Draw;
         Framework.Update -= OnFrameworkUpdate;
+        NamePlateGui.OnDataUpdate -= OnNamePlateDataUpdate;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
         ClientState.TerritoryChanged -= OnTerritoryChanged;
@@ -211,6 +220,19 @@ public sealed class Plugin : IDalamudPlugin
             CommandManager.RemoveHandler(CommandAlias);
             CommandManager.RemoveHandler(AsuMechCommand);
             CommandManager.RemoveHandler(AsuMechAlias);
+        }
+    }
+
+    private void OnNamePlateDataUpdate(INamePlateUpdateContext context, IReadOnlyCollection<INamePlateUpdateHandler> handlers)
+    {
+        if (!LocalPlayerName.Shown) return;
+        var local = ObjectTable.LocalPlayer;
+        if (local == null) return;
+        foreach (var handler in handlers)
+        {
+            if (handler.PlayerCharacter?.Address != local.Address) continue;
+            handler.Name = new SeString(new TextPayload(LocalPlayerName.Display));
+            handler.FreeCompanyTag = new SeString();
         }
     }
 
@@ -247,7 +269,7 @@ public sealed class Plugin : IDalamudPlugin
         catch (Exception e) { DiagnosticLog.Warn($"[Plugin] Multiplayer.Tick threw: {e}"); }
     }
 
-    private void OnTerritoryChanged(uint territory)
+    private void OnTerritoryChanged(ushort territory)
     {
         ZoneControl.NoteTerritoryChanged(territory);
         var row = DataManager.GetExcelSheet<TerritoryType>()?.GetRowOrDefault(territory);
@@ -269,14 +291,14 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnLogout(int type, int code) => ZoneControl.NoteLogout(type, code);
 
-    private void OnDutyStarted(IDutyStateEventArgs args)
-        => LogManager.LogCombatStart(args.TerritoryType.RowId);
+    private void OnDutyStarted(object? sender, ushort territory)
+        => LogManager.LogCombatStart(territory);
 
-    private void OnDutyWiped(IDutyStateEventArgs args)
-        => LogManager.LogCombatEnd(args.TerritoryType.RowId, wipe: true);
+    private void OnDutyWiped(object? sender, ushort territory)
+        => LogManager.LogCombatEnd(territory, wipe: true);
 
-    private void OnDutyCompleted(IDutyStateEventArgs args)
-        => LogManager.LogCombatEnd(args.TerritoryType.RowId, wipe: false);
+    private void OnDutyCompleted(object? sender, ushort territory)
+        => LogManager.LogCombatEnd(territory, wipe: false);
 
     private void OnCommand(string command, string args)
     {

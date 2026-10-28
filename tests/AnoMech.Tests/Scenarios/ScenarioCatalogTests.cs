@@ -26,7 +26,7 @@ public class ScenarioCatalogTests
 
     // Paste the replay line of a failing seed here to debug it.
     [Explicit]
-    [TestCase(typeof(global::AnoMech.Scenarios.Umad.P3BlackHole.UmadP3BlackHoleScenario), 0, 285776436)]
+    [TestCase(typeof(global::AnoMech.Scenarios.Dsr.P1Knights.DsrP1KnightsScenario), 0, 1)]
     public void Replay(Type scenarioType, int strat, int seed)
     {
         var run = ScenarioRun.Execute(scenarioType, strat, seed, new ScenarioRunOptions { AlwaysWriteArtifacts = true });

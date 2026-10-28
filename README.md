@@ -44,30 +44,6 @@ As this feature is still in beta, some edge cases and less common interactions m
 
 ## Currently implemented 
 All using default NA pf strats unless noted otherwise:
-- Dancing Mad (Ultimate)
-    - P1 Tele-trouncing _by [Evernow](https://github.com/Evernow)_
-    - P2 Forsaken
-      - NA
-        - [Kroxy-Rinon 341 (Center/N Stacks) melee adjust](https://raidplan.io/plan/UATE__aDcw1-bgVv)
-        - [South Adjust 341](https://raidplan.io/plan/uq7zdjvuu7uuw8fj)
-        - diamond markers or week one positions
-      - EU _by [Wydox](https://github.com/Wydox)_
-        - [\[LPDU\] Buddies](https://raidplan.io/plan/142oXOZpPc_jh3dd)
-        - [\[Old\] p3Z Buddy Meow](https://raidplan.io/plan/lZWqxfxvyhF9sp3Z)
-        - [\[Old\] zP6 South adjust](https://raidplan.io/plan/rtc1FcuZFMuyBzP6)
-      - JP _by [altair9x](https://github.com/altair9x)_
-        - [Yan](https://yan-flash.com/ultimate/yosei-ranbu#ult-phase-2)
-    - P3 Limit Cut _by [Evernow](https://github.com/Evernow)_
-    - P3 Black Hole _old bh (single tethers, n/s stomps)_
-      - D>S>A
-      - S>D>A _by [Evernow](https://github.com/Evernow)_
-    - P4 Kefka Says
-      - kefkabin
-      - kefkabin, gazes: supports N / DPS S _by [Evernow](https://github.com/Evernow)_
-    - P5 Flood _by [Evernow](https://github.com/Evernow)_
-    - P5 Exaflares _by [Wydox](https://github.com/Wydox)_
-    - P5 Celestriad _by [RoarkGit](https://github.com/RoarkGit)_
-    - P5 Forsaken Null _no ai or damage_
 - Futures Rewritten (Ultimate) _by [grayparser](https://github.com/grayparser)_
     - P2 Diamond Dust 
     - P2 Light Rampant

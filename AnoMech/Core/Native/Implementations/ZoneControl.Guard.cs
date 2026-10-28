@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Conditions;
+using AnoMech.Core.Native.Implementations.Interop;
 using AnoMech.Core.Native.Interfaces;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
@@ -92,6 +93,10 @@ public sealed unsafe partial class ZoneControl
         TickZoneChangeLatch();
         TickSessionGuard();
         TickSendHold();
+        if (loadedInstanceContent != null)
+            LocalPlayerName.Show();
+        else
+            LocalPlayerName.Hide();
     }
 
     private static bool Zoning() => Plugin.Condition[ConditionFlag.BetweenAreas] || Plugin.Condition[ConditionFlag.BetweenAreas51];

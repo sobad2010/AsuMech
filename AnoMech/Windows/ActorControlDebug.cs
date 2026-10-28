@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using AnoMech.Core.Native.Implementations.Pointers;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -167,11 +168,11 @@ internal sealed unsafe class ActorControlDebug
         }
 
         var entityId = actor->EntityId;
-        var label = $"AC 0x{category:X}({string.Join(", ", args.Reverse().SkipWhile(v => v == 0).Reverse().Select(v => $"0x{v:X}"))}) on {Name(actor)} 0x{entityId:X}";
+        var label = $"AC 0x{category:X}({string.Join(", ", Enumerable.Reverse(args).SkipWhile(v => v == 0).Reverse().Select(v => $"0x{v:X}"))}) on {Name(actor)} 0x{entityId:X}";
         var before = Snapshot(entityId)!;
         try
         {
-            PacketDispatcher.HandleActorControlPacket(entityId, category, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], targetId, false);
+            PacketDispatcherPointers.HandleActorControlPacket(entityId, category, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], targetId, false);
         }
         catch (Exception e)
         {
@@ -206,11 +207,10 @@ internal sealed unsafe class ActorControlDebug
             ["Targetable"] = $"0x{(byte)go->TargetableStatus:X2}",
             ["Mode"] = $"{chara->Mode}/{chara->ModeParam}",
             ["ModelState"] = $"0x{timeline->ModelState:X2}",
-            ["WeaponDrawn"] = timeline->IsWeaponDrawn.ToString(),
-            ["OffhandDrawn"] = chara->LifeSkillContainer.IsOffhandDrawn.ToString(),
+            ["OffhandDrawn"] = "n/a",
             ["InCombat"] = chara->InCombat.ToString(),
             ["CondInCombat"] = Plugin.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat].ToString(),
-            ["ModeAttrFlags"] = $"0x{chara->ModelContainer.ModeAttributeFlags:X2}",
+            ["ModeAttrFlags"] = "n/a",
             ["BaseOverride"] = timeline->BaseOverride.ToString(),
             ["Slot0Timeline"] = slot0,
             ["Casting"] = chara->CastInfo.IsCasting ? chara->CastInfo.ActionId.ToString() : "no",
@@ -219,7 +219,7 @@ internal sealed unsafe class ActorControlDebug
             ["Health"] = chara->Health.ToString(),
             ["RenderFlags"] = go->RenderFlags.ToString(),
             ["Drawn"] = draw == null ? "no DrawObject" : draw->IsVisible.ToString(),
-            ["Transparency"] = draw == null ? "-" : draw->GetTransparency().ToString("F2", CultureInfo.InvariantCulture),
+            ["Transparency"] = draw == null ? "-" : "n/a",
         };
     }
 

@@ -42,7 +42,7 @@ internal static unsafe partial class EventObjectHelper
         if (packet->EntityId == 0)
             packet->EntityId = DefaultEntityIdBase + packet->ObjectIndex;
 
-        PacketDispatcher.HandleSpawnObjectPacket(0, packet);
+        PacketDispatcherPointers.HandleSpawnObjectPacket(0, packet);
         slot = packet->ObjectIndex;
         eventObject = EventObjectManagerPointers.GetEventObjectByIndex(manager, (uint)slot);
         return eventObject != null;

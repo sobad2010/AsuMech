@@ -21,7 +21,8 @@ internal sealed unsafe class SummonerStateHandler : IUserActionHandler
     private const byte Wind = 3;   // VERIFY in-game: Garuda == type 3
 
     // Bits 2-3: which demi-summon is active (0 = Bahamut/Dreadwyrm). Cleared when SummonTimer expires.
-    private const AetherFlags SummonState = AetherFlags.PhoenixPrimed | AetherFlags.SolarBahamutFirstPrimed;
+    // API 13 gauge: PhoenixReady is the demi bit. Solar Bahamut has no flag on this client.
+    private const AetherFlags SummonState = AetherFlags.PhoenixReady;
 
     public void OnAction(ActionType actionType, uint actionId)
     {
@@ -39,9 +40,9 @@ internal sealed unsafe class SummonerStateHandler : IUserActionHandler
             case 3581:  // Dreadwyrm Trance (pre-70)
                 Trance(g, AetherFlags.None); break;
             case 25831: // Summon Phoenix
-                Trance(g, AetherFlags.PhoenixPrimed); break;
+                Trance(g, AetherFlags.PhoenixReady); break;
             case 36992: // Summon Solar Bahamut
-                Trance(g, AetherFlags.SolarBahamutSecondPrimed); break;  // VERIFY in-game: solar sets both bits (value 12)
+                Trance(g, AetherFlags.PhoenixReady); break;
 
             // Elemental summons → set attunement (type + count) and refresh its 30s timer.
             // Ifrit grants 2, Titan/Garuda grant 4. Base + level-90 "II" ids both resolve here.
@@ -87,7 +88,7 @@ internal sealed unsafe class SummonerStateHandler : IUserActionHandler
         if (g->AttunementTimer > 0)
         {
             var t = g->AttunementTimer - step;
-            if (t <= 0) { g->AttunementTimer = 0; g->AttunementCount = 0; g->AttunementType = 0; }
+            if (t <= 0) { g->AttunementTimer = 0; g->Attunement = 0; }
             else g->AttunementTimer = (ushort)t;
         }
     }
@@ -100,8 +101,7 @@ internal sealed unsafe class SummonerStateHandler : IUserActionHandler
 
     private static void Attune(SummonerGauge* g, byte type, byte count)
     {
-        g->AttunementType = type;
-        g->AttunementCount = count;
+        g->Attunement = (byte)((count << 2) | (type & 3));
         g->AttunementTimer = 30000;
     }
 
@@ -110,8 +110,9 @@ internal sealed unsafe class SummonerStateHandler : IUserActionHandler
         int count = g->AttunementCount;
         if (count <= 0) return;
         count--;
-        if (count == 0) { g->AttunementType = 0; g->AttunementTimer = 0; }
-        g->AttunementCount = (byte)count;
+        var type = count == 0 ? (byte)0 : g->AttunementType;
+        if (count == 0) g->AttunementTimer = 0;
+        g->Attunement = (byte)((count << 2) | type);
     }
 
     private static void SpendAetherflow(SummonerGauge* g)

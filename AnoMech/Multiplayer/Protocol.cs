@@ -5,9 +5,6 @@ using AnoMech.Core.Game.Party;
 using AnoMech.Core.Native.Interfaces;
 using AnoMech.Core.SimObjects;
 using AnoMech.Scenarios.Top;
-using AnoMech.Scenarios.Umad.P1TeleTrouncing;
-using AnoMech.Scenarios.Umad.P2Forsaken;
-using AnoMech.Scenarios.Umad.P3BlackHole;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace AnoMech.Multiplayer;
@@ -41,23 +38,14 @@ namespace AnoMech.Multiplayer;
 [JsonDerivedType(typeof(SessionEndedMessage), "sessionEnded")]
 [JsonDerivedType(typeof(ResetRequestMessage), "resetRequest")]
 [JsonDerivedType(typeof(LeaveRequestMessage), "leaveRequest")]
-[JsonDerivedType(typeof(AiReplayStateMessage), "aiReplayState")]
-[JsonDerivedType(typeof(P2AiReplayStateMessage), "p2AiReplayState")]
-[JsonDerivedType(typeof(P2LockonsUpdateMessage), "p2LockonsUpdate")]
 [JsonDerivedType(typeof(AnnouncementMessage), "announcement")]
-[JsonDerivedType(typeof(P4AiReplayStateMessage), "p4AiReplayState")]
-[JsonDerivedType(typeof(P5AiReplayStateMessage), "p5AiReplayState")]
 [JsonDerivedType(typeof(TopP6WaveCannon2AiReplayStateMessage), "topP6Wc2AiReplayState")]
 [JsonDerivedType(typeof(TopP2PartySynergyAiReplayStateMessage), "topP2PsAiReplayState")]
 [JsonDerivedType(typeof(TopP5SigmaAiReplayStateMessage), "topP5SigmaAiReplayState")]
 [JsonDerivedType(typeof(TopP5OmegaAiReplayStateMessage), "topP5OmegaAiReplayState")]
 [JsonDerivedType(typeof(UltimatePredationAiReplayStateMessage), "ultimatePredationAiReplayState")]
 [JsonDerivedType(typeof(TopP5DeltaAiReplayStateMessage), "topP5DeltaAiReplayState")]
-[JsonDerivedType(typeof(UmadP3LimitCutAiReplayStateMessage), "umadP3LimitCutAiReplayState")]
-[JsonDerivedType(typeof(UmadP1TeleTrouncingAiReplayStateMessage), "umadP1TeleTrouncingAiReplayState")]
-[JsonDerivedType(typeof(UmadP5FloodAiReplayStateMessage), "umadP5FloodAiReplayState")]
 [JsonDerivedType(typeof(UcobP5ExaflaresAiReplayStateMessage), "ucobP5ExaflaresAiReplayState")]
-[JsonDerivedType(typeof(UmadP5CelestriadAiReplayStateMessage), "umadP5CelestriadAiReplayState")]
 [JsonDerivedType(typeof(UltimateSuppressionAiReplayStateMessage), "ultimateSuppressionAiReplayState")]
 [JsonDerivedType(typeof(TopP5DeltaBeyondDefenseUpdateMessage), "topP5DeltaBeyondDefenseUpdate")]
 [JsonDerivedType(typeof(TopP5OmegaHelloWorld2UpdateMessage), "topP5OmegaHelloWorld2Update")]
@@ -228,67 +216,13 @@ public sealed record ResetRequestMessage(Guid PeerId) : MpMessage, IPeerMessage;
 // disconnects the sender.
 public sealed record LeaveRequestMessage(Guid PeerId) : MpMessage, IPeerMessage;
 
-// The host's per-run rolls, the subset UmadP3BlackHoleAi reads (UmadP3BlackHoleState
-// .FromNetworkReplay). ThunderSet1/2 carry the host's real plan so a debug-bot peer
-// self-applies the right kit.
-public sealed record AiReplayStateMessage(
-    PartyRole[] Roles, PartyRole[] StackTargets, uint[] SlapAttacks,
-    float[] KefkaPositionRadians, uint ImplosionAttack,
-    ThunderIIIAssignment ThunderSet1, ThunderIIIAssignment ThunderSet2) : MpMessage, IScenarioReplayStateMessage;
-
-// The whole P2 state surface: every field is a plain value and 7 Ai variants read different subsets.
-public sealed record P2AiReplayStateMessage(
-    EndAttack[] EndAttacks, float NewNorthRadians, int Rotation, Dictionary<PartyRole, uint> Lockons) : MpMessage, IScenarioReplayStateMessage;
-
-// Lockons are reassigned mid-run by ReapplyLockons (host-only); a stale replay lookup would
-// miss and throw inside EventScheduler.Tick, killing every later scheduled move.
-public sealed record P2LockonsUpdateMessage(Dictionary<PartyRole, uint> Lockons) : MpMessage, IScenarioMidRunUpdateMessage;
-
 // Replay of SimWorld.Announce: a scenario's own mid-run message to the party.
 public sealed record AnnouncementMessage(string Text) : MpMessage, IHostOnlyMessage;
-
-// The subset UmadP4KefkaSaysAi reads (UmadP4KefkaSaysState.FromNetworkReplay); MysteryCast
-// reduced to its three scalars.
-public sealed record P4AiReplayStateMessage(
-    int[] MysteryBlizzardOffset, int[] MysteryLightningOffset, float[] MysteryLightningOrientation,
-    bool Wave1First, PartyRole[] Wave1, bool Wave1True, PartyRole[] Wave2, bool Wave2True,
-    bool InfernoIsTrue, bool TsunamiIsTrue, PartyRole[] Wave3, bool[] Wounds,
-    bool Antilight0IsWhite, float NeoExdeathDirectionRadians) : MpMessage, IScenarioReplayStateMessage;
-
-// LeftOrder/RightOrder is the whole meaningful state; Timeline/SpreadTick are rebuilt locally.
-public sealed record P5AiReplayStateMessage(int[] LeftOrder, int[] RightOrder) : MpMessage, IScenarioReplayStateMessage;
-
-// The whole UmadP3LimitCutState roll: first clone spot and walk direction, the eight numbers,
-// who carries Headwind, the intercardinal the bosses are held at, and the Umbra Smash bait.
-public sealed record UmadP3LimitCutAiReplayStateMessage(
-    int StartSpot, bool Clockwise, PartyRole[] Numbers, PartyRole[] Headwinds, int BossSpot, PartyRole BaitRole,
-    ThunderIIIAssignment ThunderPlan) : MpMessage, IScenarioReplayStateMessage;
-
-// The whole UmadP1TeleTrouncingState roll, parallel arrays indexed by Roles. Spots derive from
-// Debuffs on receipt.
-public sealed record UmadP1TeleTrouncingAiReplayStateMessage(
-    bool DpsGetsDifferent, bool DpsGetsConfused,
-    PartyRole[] Roles, TelePortentDirection[] FirstDirections, TelePortentDirection[] SecondDirections, bool[] Polarity,
-    PartyRole ConfettiStackSupport, PartyRole ConfettiStackDps,
-    bool GazeInverted, bool FireIsStack, bool FireIsLie, PartyRole FireStackSupport, PartyRole FireStackDps,
-    int ThunderRealOffset, bool ThunderOrientationFlipped, bool ThunderIsLie) : MpMessage, IScenarioReplayStateMessage;
-
-// The whole UmadP5FloodState roll; the stack target is rolled per tick on the host and never
-// read by the Ai.
-public sealed record UmadP5FloodAiReplayStateMessage(
-    bool NeSwReversed, bool NwSeReversed, bool NeSwFirst, int StartQuadrant, bool RotationClockwise) : MpMessage, IScenarioReplayStateMessage;
 
 // The set's travel direction plus the order its six lanes fire in; everything else about the
 // pattern is derived from those two.
 public sealed record UcobP5ExaflaresAiReplayStateMessage(
     float DirectionRadians, float[] LaneOrder) : MpMessage, IScenarioReplayStateMessage;
-
-// Elements and the Catastrophic Choice travel as indices into UmadP5CelestriadState's own fixed
-// orders; -1 is "free"/"none". Tower indices index AllTowers, which is fixed for a run.
-// TowerElementOrder carries the NE/S/NW sector permutation; null is the legacy fixed layout.
-public sealed record UmadP5CelestriadAiReplayStateMessage(
-    int[] DoubleElement, Dictionary<PartyRole, int> PlayerDebuffElement,
-    int[][] SetActiveTowers, int[] AeroVariant, int[]? TowerElementOrder = null) : MpMessage, IScenarioReplayStateMessage;
 
 // Who has what. The state's other fields are live SimCharacter handles the peer resolves from
 // its own party, and LightPillarPlacement is host-only (the Ai never reads it).

@@ -92,26 +92,11 @@ internal sealed unsafe class Bgm : IBgm
         player = null;
     }
 
-    // GetEffectiveVolume throws if its signature didn't resolve.
-    private static bool volumeFallbackLogged;
-
-    // The Music bus carries the BGM slider, the BGM mute and the background-window rule; the game
-    // applies the master volume and mute at its output instead, so they're multiplied in here.
     private static float MusicVolume()
     {
         var manager = SoundManager.Instance();
-        if (manager == null || manager->Disabled || manager->IsSndMaster) return 0f;
-        var master = manager->MasterVolume * manager->ActiveVolume;
-        try
-        {
-            return manager->GetEffectiveVolume(SoundBus.Music) * master;
-        }
-        catch (InvalidOperationException e)
-        {
-            if (!volumeFallbackLogged) DiagnosticLog.Warn($"[Bgm] Music volume unreadable ({e.Message}); our output follows the master volume only.");
-            volumeFallbackLogged = true;
-            return master;
-        }
+        if (manager == null || manager->Disabled) return 0f;
+        return manager->MasterVolume * manager->ActiveVolume;
     }
 
     public void Dispose() => Reset();

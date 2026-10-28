@@ -276,7 +276,7 @@ public sealed unsafe partial class ZoneControl : IZoneControl
         var mgr = WeatherManager.Instance();
         if (mgr == null) return;
         var slot = mgr->Weathers[ServerWeatherSlot];
-        originalWeather = (slot.CurrentWeatherId, slot.IsCurrentWeatherForced);
+        originalWeather = (slot.CurrentWeatherId, false);
     }
 
     private static void ReceiveWeatherChange(byte weatherId, bool forced, float transition)
@@ -350,7 +350,7 @@ public sealed unsafe partial class ZoneControl : IZoneControl
         if (mgr != null && mgr->WeatherIndex < mgr->Weathers.Length)
         {
             var sw = mgr->Weathers[mgr->WeatherIndex];
-            slotInfo = $"slot[{mgr->WeatherIndex}] Current={sw.CurrentWeatherId} Next={sw.NextWeatherId} ForcedCurrent={sw.IsCurrentWeatherForced} ForcedNext={sw.IsNextWeatherForced}";
+            slotInfo = $"slot[{mgr->WeatherIndex}] Current={sw.CurrentWeatherId} Next={sw.NextWeatherId}";
         }
         // EnvScene._weatherIds (32 bytes): the zone's own per-EnvSpace weather table, a local
         // position-resolved source of the silent ActiveWeather reassert.
@@ -367,7 +367,7 @@ public sealed unsafe partial class ZoneControl : IZoneControl
         // against the zone's layout; logged with the position so a revert can be tied to it.
         var envSpacePtr = (nint)(env != null ? env->EnvSpace : null);
         var envLocationPtr = (nint)(env != null && env->EnvSpace != null ? env->EnvSpace->EnvLocation : null);
-        var locationCount = env != null && env->EnvScene != null ? env->EnvScene->LocationCount : 0u;
+        var locationCount = 0u;
         var playerPos = Plugin.ObjectTable.LocalPlayer?.Position;
         var posInfo = playerPos is { } p ? $"{p.X:F2},{p.Y:F2},{p.Z:F2}" : "n/a";
         AnoMech.Core.DiagnosticLog.Info(
@@ -494,7 +494,7 @@ public sealed unsafe partial class ZoneControl : IZoneControl
         {
             if (Plugin.ObjectTable.LocalPlayer != null)
             {
-                PacketDispatcher.HandleActorControlPacket(Plugin.ObjectTable.LocalPlayer.EntityId, 54, 1, 0, 0, 0, 0, 0, 0, 0, 0xE0000000, false);
+                PacketDispatcherPointers.HandleActorControlPacket(Plugin.ObjectTable.LocalPlayer.EntityId, 54, 1, 0, 0, 0, 0, 0, 0, 0, 0xE0000000, false);
             }
         }
         catch (Exception e)
@@ -608,6 +608,8 @@ public sealed unsafe partial class ZoneControl : IZoneControl
     private void LoadZoneInternal(uint territory, bool unloading, Vector3 playerPos, float? rotation = null)
     {
         completedLoad = 0;
+        if (unloading)
+            LocalPlayerName.Hide();
         var eventFramework = EventFramework.Instance();
         var gm = GameMain.Instance();
         Plugin.Log.Information($"[ZoneControl] LoadZone territory={territory} ef={((nint)eventFramework):X} gm={((nint)gm):X}");
@@ -691,7 +693,7 @@ public sealed unsafe partial class ZoneControl : IZoneControl
     private const uint InstanceContentDirectorBase = 0x80030000;
 
     private static void SendDirectorControl(uint category, uint directorId, uint contentId = 0)
-        => PacketDispatcher.HandleActorControlPacket(Plugin.ObjectTable.LocalPlayer!.EntityId, category, directorId, contentId, 0, 0, 0, 0, 0, 0, 0xE0000000, false);
+        => PacketDispatcherPointers.HandleActorControlPacket(Plugin.ObjectTable.LocalPlayer!.EntityId, category, directorId, contentId, 0, 0, 0, 0, 0, 0, 0xE0000000, false);
 
     private void SetLocalPlayerPosition(Vector3 position, float? rotation = null)
     {

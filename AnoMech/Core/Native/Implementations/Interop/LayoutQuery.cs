@@ -108,7 +108,7 @@ internal static unsafe class LayoutQuery
                 var inst = instKv.Item2.Value;
                 if (inst == null) continue;
                 total++;
-                if (inst->IsActive) active++;
+                if (inst->WantToBeActive()) active++;
             }
             parts.Add($"0x{layerKv.Item1:X}:{active}/{total}");
         }

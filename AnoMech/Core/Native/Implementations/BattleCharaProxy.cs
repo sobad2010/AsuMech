@@ -284,7 +284,7 @@ internal sealed unsafe class BattleCharaProxy : IBattleCharaProxy
             RotationInt = MathUtil.QuantizeRotation(effect.Rotation),
             SpellId = effect.SpellId,
             AnimationVariation = effect.AnimationVariation,
-            ActionType = (byte)effect.ActionType,
+            ActionType = effect.ActionType,
             Flags = effect.Flags,
             NumTargets = (byte)count,
         };
@@ -334,14 +334,14 @@ internal sealed unsafe class BattleCharaProxy : IBattleCharaProxy
     {
         var obj = Ptr;
         if (obj == null) return;
-        PacketDispatcher.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, NoTarget, false);
+        PacketDispatcherPointers.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, NoTarget, false);
     }
 
     public void ActorControlTarget(uint category, GameObjectId target, uint arg1 = 0, uint arg2 = 0, uint arg3 = 0, uint arg4 = 0)
     {
         var obj = Ptr;
         if (obj == null) return;
-        PacketDispatcher.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, 0, 0, 0, 0, target, false);
+        PacketDispatcherPointers.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, 0, 0, 0, 0, target.ObjectId, false);
     }
 
     // Within this many yalms of the target the approach counts as arrived. UNVERIFIED: retail's value.
@@ -500,7 +500,7 @@ internal sealed unsafe class BattleCharaProxy : IBattleCharaProxy
                     // Base-slot internals: load state, group, resolved resource name and the
                     // sequencer's shadow id arrays.
                     var state = *(int*)((byte*)scheduler + 0x78);
-                    slots.Append($"[state={state} group=0x{(nint)scheduler->OwningGroup:X}");
+                    slots.Append($"[state={state}");
                     var resource = scheduler->SchedulerResource;
                     if (resource == null) slots.Append(" res=none");
                     else
@@ -508,7 +508,7 @@ internal sealed unsafe class BattleCharaProxy : IBattleCharaProxy
                         var name = resource->Name.DataPointer != null ? ((CStringPointer)resource->Name.DataPointer).ToString() : "(inline)";
                         slots.Append($" res=\"{name}\" handle={(resource->Resource == null ? "none" : $"LoadState={resource->Resource->LoadState}")}");
                     }
-                    slots.Append($" ids2/3/4={obj->Timeline.TimelineSequencer.TimelineIds2[0]}/{obj->Timeline.TimelineSequencer.TimelineIds3[0]}/{obj->Timeline.TimelineSequencer.TimelineIds4[0]}]");
+                    slots.Append("]");
                 }
             }
             slots.Append(' ');
@@ -556,11 +556,11 @@ internal sealed unsafe class BattleCharaProxy : IBattleCharaProxy
             var staging = draw->PerSlotStagingArea[i];
             if (staging.ModelResourceHandle == null)
             {
-                text.Append($"staging.Flags={staging.Flags}, ModelResourceHandle=null, ResolveMdlPath={resolvedPath}");
+                text.Append($"ModelResourceHandle=null, ResolveMdlPath={resolvedPath}");
                 continue;
             }
             var rh = (ResourceHandle*)staging.ModelResourceHandle;
-            text.Append($"staging.Flags={staging.Flags}, handle.FileName=\"{rh->FileName}\", LoadState={rh->LoadState}, ReadState={rh->ReadState}, OtherState={rh->OtherState}, LastIOResult={rh->LastIOResult}, RefCount={rh->RefCount}, ResolveMdlPath={resolvedPath}");
+            text.Append($"handle.FileName=\"{rh->FileName}\", LoadState={rh->LoadState}, RefCount={rh->RefCount}, ResolveMdlPath={resolvedPath}");
         }
         return text.ToString();
     }

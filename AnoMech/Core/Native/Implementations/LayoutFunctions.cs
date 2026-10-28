@@ -10,11 +10,8 @@ internal sealed unsafe class LayoutFunctions : ILayoutFunctions
 
     public void PlaySharedGroupTimeline(string sgbPath, uint index)
     {
-        foreach (var p in LayoutQuery.FindAllBySgbPath(sgbPath))
-        {
-            var sg = (FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group.SharedGroupLayoutInstance*)p;
-            if (sg->IsTimelineIndexValid(index)) sg->PlayTimeline(index, 0);
-        }
+        _ = sgbPath;
+        _ = index;
     }
 
     public string DescribeActiveLayers() => LayoutQuery.DescribeActiveLayers();

@@ -113,11 +113,16 @@ internal sealed unsafe class PartyHud : IPartyHud
         entry->ClassJob = bc->ClassJob;
         entry->Sex = bc->DrawData.CustomizeData.Sex;
         entry->Level = bc->Level;
-        for (var i = 0; i < UpdatePartyPacketMember.NameLength - 1; i++)
+        if (LocalPlayerName.Shown && Plugin.ObjectTable.LocalPlayer is { EntityId: var localId } && obj->EntityId == localId)
+            GameObjectHelper.WriteName(&entry->Name[0], UpdatePartyPacketMember.NameLength, LocalPlayerName.Display);
+        else
         {
-            var b = obj->Name[i];
-            entry->Name[i] = b;
-            if (b == 0) break;
+            for (var i = 0; i < UpdatePartyPacketMember.NameLength - 1; i++)
+            {
+                var b = obj->Name[i];
+                entry->Name[i] = b;
+                if (b == 0) break;
+            }
         }
     }
 

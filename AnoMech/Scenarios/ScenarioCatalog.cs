@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AnoMech.Scenarios.Dsr;
 using AnoMech.Scenarios.Dsr.P1Knights;
 using AnoMech.Scenarios.Dsr.P2Thordan;
 using AnoMech.Scenarios.Dsr.P3Nidhogg;
@@ -44,15 +45,6 @@ using AnoMech.Scenarios.Top.P5Omega;
 using AnoMech.Scenarios.Top.P5Sigma;
 using AnoMech.Scenarios.Top.P6WaveCannon2;
 using AnoMech.Scenarios.Ucob.P5Exaflares;
-using AnoMech.Scenarios.Umad;
-using AnoMech.Scenarios.Umad.P1TeleTrouncing;
-using AnoMech.Scenarios.Umad.P2Forsaken;
-using AnoMech.Scenarios.Umad.P3BlackHole;
-using AnoMech.Scenarios.Umad.P3LimitCut;
-using AnoMech.Scenarios.Umad.P4KefkaSays;
-using AnoMech.Scenarios.Umad.P5Celestriad;
-using AnoMech.Scenarios.Umad.P5Exaflares;
-using AnoMech.Scenarios.Umad.P5Flood;
 using AnoMech.Scenarios.Uwu.P1Garuda;
 using AnoMech.Scenarios.Uwu.P2Ifrit;
 using AnoMech.Scenarios.Uwu.P3Titan;
@@ -69,6 +61,8 @@ public sealed class ScenarioCatalog
 {
     public IReadOnlyList<IScenario> Scenarios { get; }
     public IReadOnlyList<IZone> Zones { get; }
+    // Player-facing scenario picker; full Scenarios/Zones stay registered for tests and MP indices.
+    public IReadOnlyList<IZone> MenuZones { get; }
     private readonly Dictionary<IZone, IReadOnlyList<IPhase>> phasesByZone;
     private readonly Dictionary<IPhase, IReadOnlyList<IScenario>> scenariosByPhase;
 
@@ -97,24 +91,17 @@ public sealed class ScenarioCatalog
             phaseScenarios.Add(scenario);
         }
         Zones = zones;
+        MenuZones = zones.Where(z => z is DsrZone).ToList();
         phasesByZone = phases.ToDictionary(kv => kv.Key, IReadOnlyList<IPhase> (kv) => kv.Value);
         scenariosByPhase = byPhase.ToDictionary(kv => kv.Key, IReadOnlyList<IScenario> (kv) => kv.Value);
     }
 
     public IReadOnlyList<IPhase> PhasesOf(IZone zone) => phasesByZone[zone];
     public IReadOnlyList<IScenario> ScenariosOf(IPhase phase) => scenariosByPhase[phase];
+    public bool ListedInMenu(IScenario scenario) => scenario.Phase.Zone is DsrZone;
 
     public static ScenarioCatalog Create() => new(
     [
-        new UmadP1TeleTrouncingScenario(),
-        new UmadP2ForsakenScenario(),
-        new UmadP3LimitCutScenario(),
-        new UmadP3BlackHoleScenario(),
-        new UmadP4KefkaSaysScenario(),
-        new UmadP5FloodScenario(),
-        new UmadP5CelestriadScenario(),
-        new UmadP5ExaflaresScenario(),
-        new UmadP5ForsakenNull(),
         new FruP2DiamondDustScenario(),
         new FruP2LightRampantScenario(),
         new FruP3UltimateRelativityScenario(),

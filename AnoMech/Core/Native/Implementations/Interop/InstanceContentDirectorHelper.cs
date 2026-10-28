@@ -41,7 +41,7 @@ internal static unsafe class InstanceContentDirectorHelper
         var localPlayer = Plugin.ObjectTable.LocalPlayer;
         if (localPlayer == null) return false;
 
-        PacketDispatcher.HandleActorControlPacket(localPlayer.EntityId, DirectorUpdateCategory, director->GetEventId(),
+        PacketDispatcherPointers.HandleActorControlPacket(localPlayer.EntityId, DirectorUpdateCategory, director->GetEventId(),
             category, arg1, arg2, arg3, arg4, arg5, arg6, NoTarget, false);
         return true;
     }

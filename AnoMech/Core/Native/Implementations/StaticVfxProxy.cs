@@ -1,4 +1,5 @@
 using System.Numerics;
+using AnoMech.Core.Native.Implementations.Pointers;
 using AnoMech.Core.Native.Interfaces;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 
@@ -13,5 +14,5 @@ internal sealed unsafe class StaticVfxProxy(VfxObject* vfx) : IStaticVfxProxy
         vfx->Flags |= 0x2;
     }
 
-    public void Remove() => vfx->CleanupRender();
+    public void Remove() => PacketDispatcherPointers.HandleStaticVfxRemove(vfx);
 }

@@ -66,7 +66,7 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
             case Manafont:
                 SetStance(g, 3);
                 g->UmbralHearts = 3;
-                g->ParadoxActive = true;
+                SetParadox(g, true);
                 break;
 
             // Blizzard I: neutral/fire -> Umbral Ice I, already-ice -> +1 stack (cap -3).
@@ -100,7 +100,7 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
 
             case Paradox:
                 Refresh(g);
-                g->ParadoxActive = false;
+                SetParadox(g, false);
                 break;
         }
     }
@@ -125,9 +125,7 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
             g->EnochianTimer = 0;
             g->ElementStance = 0;
             g->UmbralHearts = 0;
-            g->EnochianActive = false;
-            g->ParadoxActive = false;
-            g->AstralSoulStacks = 0;
+            g->EnochianFlags = EnochianFlags.None;
         }
     }
 
@@ -135,7 +133,7 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
     private static void SetStance(BlackMageGauge* g, sbyte stance)
     {
         g->ElementStance = stance;
-        g->EnochianActive = true;
+        g->EnochianFlags |= EnochianFlags.Enochian;
         g->EnochianTimer = 15000;
     }
 
@@ -146,10 +144,16 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
         => g->UmbralHearts = (byte)Math.Max(g->UmbralHearts - n, 0);
 
     private static void SetAstralSoul(BlackMageGauge* g, int stacks)
-        => g->AstralSoulStacks = Math.Clamp(stacks, 0, 6);
+    {
+        var bits = (byte)(((byte)g->EnochianFlags & ~0x1C) | ((Math.Clamp(stacks, 0, 6) & 7) << 2));
+        g->EnochianFlags = (EnochianFlags)bits;
+    }
 
     private static void AddAstralSoul(BlackMageGauge* g, int delta)
         => SetAstralSoul(g, g->AstralSoulStacks + delta);
+
+    private static void SetParadox(BlackMageGauge* g, bool on)
+        => g->EnochianFlags = on ? g->EnochianFlags | EnochianFlags.Paradox : g->EnochianFlags & ~EnochianFlags.Paradox;
 
     // Fire/Blizzard swap to Paradox once its gauge marker is armed. The marker is granted on reaching
     // Umbral Ice III with 3 Umbral Hearts (plus directly by Manafont); it persists — carried into Astral
@@ -160,6 +164,6 @@ internal sealed unsafe class BlackMageStateHandler : IUserActionHandler
     private static void TryArmParadox(BlackMageGauge* g)
     {
         if (g->ElementStance == -3 && g->UmbralHearts == 3)
-            g->ParadoxActive = true;
+            SetParadox(g, true);
     }
 }

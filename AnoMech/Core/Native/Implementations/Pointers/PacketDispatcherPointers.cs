@@ -1,5 +1,7 @@
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System.Runtime.InteropServices;
@@ -289,6 +291,21 @@ public struct WeatherChangePacket
 
 internal unsafe class PacketDispatcherPointers
 {
+    [Signature("48 89 5C 24 ?? 57 48 81 EC ?? ?? ?? ?? 48 8B DA 8B F9 E8 ?? ?? ?? ?? 3C ?? 75 ?? E8 ?? ?? ?? ?? 3C ?? 75 ?? 80 BB ?? ?? ?? ?? ?? 75 ?? 8B 05 ?? ?? ?? ?? 39 43 ?? 0F 85 ?? ?? ?? ?? 0F B6 53 ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 0F B6 53 ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 44 24 ?? C7 44 24 ?? ?? ?? ?? ?? BA ?? ?? ?? ?? 66 90 48 8D 80 ?? ?? ?? ?? ?? ?? ?? 0F 10 4B ?? 48 8D 9B ?? ?? ?? ?? 0F 11 40 ?? 0F 10 43 ?? 0F 11 48 ?? 0F 10 4B ?? 0F 11 40 ?? 0F 10 43 ?? 0F 11 48 ?? 0F 10 4B ?? 0F 11 40 ?? 0F 10 43 ?? 0F 11 48 ?? 0F 10 4B ?? 0F 11 40 ?? 0F 11 48 ?? 48 83 EA ?? 75 ?? ?? ?? ?? 4C 8D 44 24", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    public static HandleSpawnNpcPacketDelegate HandleSpawnNpcPacket { get; private set; } = null!;
+
+    [Signature("48 89 5C 24 ?? 57 48 81 EC ?? ?? ?? ?? 48 8B DA 8B F9 0F B6 92", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    public static HandleSpawnPlayerPacketDelegate HandleSpawnPlayerPacket { get; private set; } = null!;
+
+    [Signature("40 53 57 48 83 EC ?? F6 42", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    public static HandleSpawnObjectPacketDelegate HandleSpawnObjectPacket { get; private set; } = null!;
+
+    [Signature("40 55 53 57 41 54 41 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 8B 85", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    public static HandleActorControlPacketDelegate HandleActorControlPacket { get; private set; } = null!;
+
+    [Signature("40 53 48 83 EC 20 48 8B D9 48 8B 89 ?? ?? ?? ?? 48 85 C9 74 28 33 D2 E8 ?? ?? ?? ?? 48 8B 8B ?? ?? ?? ?? 48 85 C9", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    public static HandleStaticVfxRemoveDelegate HandleStaticVfxRemove { get; private set; } = null!;
+
     [Signature("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
     public static HandleActorCastPacketDelegate HandleActorCastPacket { get; private set; } = null!;
 
@@ -343,7 +360,7 @@ internal unsafe class PacketDispatcherPointers
 
     // Also a body behind a thunk. The game has two byte-identical bodies, one per snapshot
     // opcode; the pattern matches both and either does the same.
-    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 48 8B D9 48 8B FA 48 8B 89 58 01 00 00 48 85 C9 0F 84 ?? ?? ?? ?? 48 8B 01 FF 50 18 84 C0 0F 84 ?? ?? ?? ?? 4C 8B 9B 58 01 00 00 8B 07 49 8B 8B D8 02 00 00 39 01 0F 85 ?? ?? ?? ?? 49 8B 83 90 0C 00 00 48 85 C0 0F 84 ?? ?? ?? ?? 0F B6 57 04 45 32 D2", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
+    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 48 8B D9 48 8B FA 48 8B 89 58 01 00 00 48 85 C9 0F 84 ?? ?? ?? ?? 48 8B 01 FF 50 18 84 C0 0F 84 ?? ?? ?? ?? 4C 8B 9B 58 01 00 00 8B 07 49 8B 8B 38 03 00 00 39 01 0F 85 ?? ?? ?? ?? 49 8B 83 E8 0C 00 00 48 85 C0 0F 84 ?? ?? ?? ?? 0F B6 57 04 45 32 D2", UseFlags = SignatureUseFlags.Pointer, ScanType = ScanType.Text)]
     public static HandleMapEffectSnapshotPacketDelegate HandleMapEffectSnapshotPacket { get; private set; } = null!;
 
     // A packet for another job than ClassJobId rebuilds the gauge for that job instead.
@@ -427,6 +444,11 @@ internal unsafe class PacketDispatcherPointers
     public delegate void HandleActorMovePacketDelegate(uint entityId, ActorMovePacket* packet);
     public delegate void HandleNpcKnockbackPacketDelegate(uint entityId, NpcKnockbackPacket* packet);
     public delegate void HandleDespawnObjectPacketDelegate(uint unused, byte* packet);
+    public delegate void HandleSpawnNpcPacketDelegate(uint targetId, SpawnNpcPacket* packet);
+    public delegate void HandleSpawnPlayerPacketDelegate(uint targetId, SpawnPlayerPacket* packet);
+    public delegate void HandleSpawnObjectPacketDelegate(uint targetId, SpawnObjectPacket* packet);
+    public delegate void HandleActorControlPacketDelegate(uint entityId, uint category, uint arg1, uint arg2, uint arg3, uint arg4, uint arg5, uint arg6, uint arg7, uint arg8, uint targetId, bool isRecorded);
+    public delegate void HandleStaticVfxRemoveDelegate(VfxObject* vfx);
     public delegate void HandleDespawnCharacterPacketDelegate(ulong unused, DespawnCharacterPacket* packet);
     public delegate void HandleUpdateClassInfoPacketDelegate(ulong unused, UpdateClassInfoPacket* packet);
     public delegate void HandlePlayerStatsPacketDelegate(uint unused, PlayerStatsPacket* packet);

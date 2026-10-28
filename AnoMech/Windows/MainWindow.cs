@@ -108,7 +108,7 @@ public unsafe class MainWindow : Window, IDisposable
     {
         var v = Assembly.GetExecutingAssembly().GetName().Version;
         var version = v is null ? "" : $" v{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
-        return $"AsuMech{version}###MainWindow";
+        return $"AnoMech{version}###MainWindow";
     }
 
     // The title bar still shows while the window is collapsed for the run.
@@ -278,10 +278,6 @@ public unsafe class MainWindow : Window, IDisposable
 
     public override void PreDraw()
     {
-        autoCollapseButton.IconColor = Plugin.Config.AutoCollapseWhileRunning
-            ? StyleColor(ImGuiCol.Text)
-            : StyleColor(ImGuiCol.TextDisabled);
-
         var uiScale = ImGuiHelpers.GlobalScale;
         var minimumHeight = 80f;
         if (ScenarioPanel.RequestedOpen && ScenarioPanel.NaturalHeight > 0f)
@@ -318,7 +314,7 @@ public unsafe class MainWindow : Window, IDisposable
     {
         var style = ImGui.GetStyle();
         var widest = 0f;
-        foreach (var zone in Plugin.Game.Catalog.Zones)
+        foreach (var zone in Plugin.Game.Catalog.MenuZones)
         {
             widest = Math.Max(widest, ImGui.CalcTextSize(zone.Name).X + style.IndentSpacing);
             foreach (var phase in Plugin.Game.Catalog.PhasesOf(zone))
@@ -349,13 +345,13 @@ public unsafe class MainWindow : Window, IDisposable
             return;
         }
         if (!ImGui.BeginTabBar("##scenario-categories")) return;
-        foreach (var category in Plugin.Game.Catalog.Zones.Select(z => z.Category).Distinct())
+        foreach (var category in Plugin.Game.Catalog.MenuZones.Select(z => z.Category).Distinct())
         {
             var flags = _pendingCategoryTab == category ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
             if (!ImGui.BeginTabItem($"{category}###scenario-category-{category}", flags)) continue;
             if (_pendingCategoryTab == category) _pendingCategoryTab = null;
             string? lastExpansion = null;
-            foreach (var zone in Plugin.Game.Catalog.Zones.Where(z => z.Category == category))
+            foreach (var zone in Plugin.Game.Catalog.MenuZones.Where(z => z.Category == category))
             {
                 if (zone.Expansion is { } expansion && expansion != lastExpansion)
                 {
@@ -438,6 +434,7 @@ public unsafe class MainWindow : Window, IDisposable
         if (string.IsNullOrEmpty(Plugin.Config.LastSelectedScenario)) return;
         foreach (var scenario in Plugin.Game.Catalog.Scenarios)
         {
+            if (!Plugin.Game.Catalog.ListedInMenu(scenario)) continue;
             if (!string.Equals(
                     scenario.FullName(),
                     Plugin.Config.LastSelectedScenario,

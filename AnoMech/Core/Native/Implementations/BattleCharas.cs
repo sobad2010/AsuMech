@@ -77,7 +77,7 @@ internal sealed unsafe class BattleCharas : IBattleCharas
             + $"pos {placement.Position}, rot {placement.Rotation:F3}.");
         try
         {
-            PacketDispatcher.HandleSpawnNpcPacket(id, &packet);
+            PacketDispatcherPointers.HandleSpawnNpcPacket(id, &packet);
         }
         catch (Exception e)
         {
@@ -217,7 +217,7 @@ internal sealed unsafe class BattleCharas : IBattleCharas
         DiagnosticLog.Info($"[BattleCharas.SpawnDoppel] job {preset.ClassJob} level {level} -> index {idx}, entity 0x{id:X}, pos {placement.Position}, rot {placement.Rotation:F3}.");
         try
         {
-            PacketDispatcher.HandleSpawnPlayerPacket(id, &packet);
+            PacketDispatcherPointers.HandleSpawnPlayerPacket(id, &packet);
         }
         catch (Exception e)
         {

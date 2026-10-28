@@ -242,7 +242,7 @@ internal sealed unsafe class LockReplayDebug
             BallistaEntityId = NoTarget,
             RotationInt = 0x7FFF,
             SpellId = (ushort)DivineJudgment,
-            ActionType = (byte)ActionType.Action,
+            ActionType = ActionType.Action,
             NumTargets = 1,
         };
         var targetEffects = stackalloc ActionEffectHandler.TargetEffects[1];
@@ -328,7 +328,7 @@ internal sealed unsafe class LockReplayDebug
     {
         var player = LocalPlayer();
         if (player == null) return;
-        PacketDispatcher.HandleActorControlPacket(((GameObject*)player)->EntityId, category, arg1, arg2, arg3, arg4, 0, 0, 0, 0, NoTarget, false);
+        PacketDispatcherPointers.HandleActorControlPacket(((GameObject*)player)->EntityId, category, arg1, arg2, arg3, arg4, 0, 0, 0, 0, NoTarget, false);
     }
 
     private void SendPlayerStateFlags()

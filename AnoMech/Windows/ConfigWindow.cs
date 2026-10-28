@@ -16,7 +16,7 @@ public class ConfigWindow : Window, IDisposable
     private string relayPassword;
     private bool askedForLocations;
 
-    public ConfigWindow(Plugin plugin) : base("AsuMech Settings###AnoMechConfig")
+    public ConfigWindow(Plugin plugin) : base("AnoMech Settings###AnoMechConfig")
     {
         Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize;

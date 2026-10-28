@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+<Project Sdk="Dalamud.NET.Sdk/13.0.0">
 
   <PropertyGroup>
-    <Authors>Anomek</Authors>
-    <Version>0.5.1.0</Version>
+    <DalamudLibPath Condition="Exists('$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\Dalamud.dll')">$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\</DalamudLibPath>
+    <AssemblySearchPaths Condition="Exists('$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\Dalamud.dll')">$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\;$(AssemblySearchPaths)</AssemblySearchPaths>
+    <Authors>Dan</Authors>
+    <Version>0.5.1.6</Version>
     <Description>Simulate ultimate raid mechanics solo client-side</Description>
     <RootNamespace>AnoMech</RootNamespace>
     <PackageProjectUrl>https://github.com/anomek/AnoMech</PackageProjectUrl>

@@ -1,5 +1,5 @@
 using AnoMech.Core.Native.Interfaces;
-using AnoMech.Scenarios.Umad.P3BlackHole;
+using AnoMech.Scenarios.Dsr.P1Knights;
 
 namespace AnoMech.Tests;
 
@@ -47,7 +47,7 @@ public class ScenarioSessionTests
     {
         SimTimeline? timeline = null;
         var player = "";
-        var run = ScenarioRun.Execute(typeof(UmadP3BlackHoleScenario), 0, 1, new ScenarioRunOptions
+        var run = ScenarioRun.Execute(typeof(DsrP1KnightsScenario), 0, 1, new ScenarioRunOptions
         {
             Configure = c => c.EnableMechanicResultMarks = marks,
             StopAt = stopAt,

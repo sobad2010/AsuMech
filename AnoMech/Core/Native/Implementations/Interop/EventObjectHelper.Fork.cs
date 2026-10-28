@@ -2,7 +2,6 @@ using AnoMech.Core.Native.Implementations.Pointers;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Node;
 
 namespace AnoMech.Core.Native.Implementations.Interop;
 
@@ -18,7 +17,7 @@ internal static unsafe partial class EventObjectHelper
 
     public static bool ForceActive(SharedGroupLayoutInstance* sg)
     {
-        if (sg == null || ((ILayoutInstance*)sg)->IsActive) return false;
+        if (sg == null || ((ILayoutInstance*)sg)->WantToBeActive()) return false;
         SetActiveRecursive((ILayoutInstance*)sg, true, 3);
         return true;
     }
@@ -37,7 +36,7 @@ internal static unsafe partial class EventObjectHelper
         var count = sg->Instances.Instances.Count;
         for (var i = 0; i < count && i < 16; i++)
         {
-            var child = (ChildNodeInstance*)sg->Instances.Instances[i].Value;
+            var child = sg->Instances.Instances[i].Value;
             if (child != null && child->Instance != null)
                 SetActiveRecursive(child->Instance, active, depth - 1);
         }

@@ -18,13 +18,13 @@ internal sealed unsafe class EventObjectProxy(int slot, GameObject* obj) : IEven
     public float Rotation => obj->Rotation;
 
     public void ActorControl(uint category, uint arg1 = 0, uint arg2 = 0, uint arg3 = 0, uint arg4 = 0, uint arg5 = 0, uint arg6 = 0, uint arg7 = 0, uint arg8 = 0)
-        => PacketDispatcher.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, NoTarget, false);
+        => PacketDispatcherPointers.HandleActorControlPacket(obj->EntityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, NoTarget, false);
 
     private EventObject* EventObject => (EventObject*)obj;
 
     public void SetState(ushort state) => EventObjectHelper.SetState(obj, state);
-    public ushort SharedTimelineState => EventObject->SharedTimelineState;
-    public void UpdateSharedTimelineState(ushort from, ushort to) => obj->UpdateSharedTimelineState(from, to);
+    public ushort SharedTimelineState => obj->EventState;
+    public void UpdateSharedTimelineState(ushort from, ushort to) => EventObjectHelper.SetState(obj, to);
     public void ForceSharedGroupActive() => EventObjectHelper.ForceActive(EventObject->SharedGroupLayoutInstance);
     public void DeactivateSharedGroup() => EventObjectHelper.Deactivate(EventObject->SharedGroupLayoutInstance);
 
