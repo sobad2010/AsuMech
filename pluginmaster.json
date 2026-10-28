@@ -1,6 +1,6 @@
 [
     {
-        "Author": "Anomek (AnoMech); Dan (???)",
+        "Author": "Dan",
         "Name": "AnoMech",
         "Punchline": "FFXIV????? ??AnoMech ?????API13",
         "Description": "?????API13 ???:AnoMech ?????, ????????TUUFLESS?????(??+??BOT)",
@@ -22,6 +22,6 @@
         "DownloadLinkUpdate": "https://github.com/sobad2010/AsuMech/releases/latest/download/latest.zip",
         "IsHide": false,
         "IsTestingExclusive": false,
-        "LastUpdate": "1793209510"
+        "LastUpdate": "1793209579"
     }
 ]
