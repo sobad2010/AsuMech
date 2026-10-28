@@ -1,0 +1,27 @@
+[
+    {
+        "Author": "Anomek (AnoMech); Dan (???)",
+        "Name": "AnoMech",
+        "Punchline": "FFXIV????? ??AnoMech ?????API13",
+        "Description": "?????API13 ???:AnoMech ?????, ????????TUUFLESS?????(??+??BOT)",
+        "InternalName": "AnoMech",
+        "AssemblyVersion": "0.5.1.6",
+        "RepoUrl": "https://github.com/sobad2010/AsuMech",
+        "ApplicableVersion": "any",
+        "Tags": [
+            "ultimate",
+            "savage",
+            "uwu",
+            "practice",
+            "simulator"
+        ],
+        "DalamudApiLevel": 13,
+        "IconUrl": "https://raw.githubusercontent.com/sobad2010/AsuMech/release/images/icon6464.png",
+        "DownloadLinkInstall": "https://github.com/sobad2010/AsuMech/releases/latest/download/latest.zip",
+        "DownloadLinkTesting": "https://github.com/sobad2010/AsuMech/releases/latest/download/latest.zip",
+        "DownloadLinkUpdate": "https://github.com/sobad2010/AsuMech/releases/latest/download/latest.zip",
+        "IsHide": false,
+        "IsTestingExclusive": false,
+        "LastUpdate": "1793209404"
+    }
+]
