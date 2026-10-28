@@ -2,8 +2,8 @@
     {
         "Author": "Dan",
         "Name": "AnoMech",
-        "Punchline": "FFXIV????? ??AnoMech ?????API13",
-        "Description": "?????API13 ???:AnoMech ?????, ????????TUUFLESS?????(??+??BOT)",
+        "Punchline": "FFXIV\u526f\u672c\u6a21\u64ec\u5668 \u5fa9\u523bAnoMech \u7e41\u4e2d\u5316\u652f\u63f4API13",
+        "Description": "\u7e41\u4e2d\u5316\u652f\u63f4API13 \u539f\u4f5c\u8005:AnoMech \u526f\u672c\u6a21\u64ec\u5668, \u65b0\u589e\u7d55\u9f8d\u8a69\u5404\u968e\u6bb5TUUFLESS\u7684\u6253\u6cd5\u652f\u63f4(\u5834\u6a19+\u96fb\u8166BOT)",
         "InternalName": "AnoMech",
         "AssemblyVersion": "0.5.1.6",
         "RepoUrl": "https://github.com/sobad2010/AsuMech",
