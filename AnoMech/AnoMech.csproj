@@ -5,7 +5,7 @@
     <DalamudLibPath Condition="Exists('$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\Dalamud.dll')">$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\</DalamudLibPath>
     <AssemblySearchPaths Condition="Exists('$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\Dalamud.dll')">$(APPDATA)\FFXIVSimpleLauncher\Dalamud\Injector\;$(AssemblySearchPaths)</AssemblySearchPaths>
     <Authors>Dan</Authors>
-    <Version>0.5.1.7</Version>
+    <Version>0.5.1.8</Version>
     <Description>Simulate ultimate raid mechanics solo client-side</Description>
     <RootNamespace>AnoMech</RootNamespace>
     <PackageProjectUrl>https://github.com/anomek/AnoMech</PackageProjectUrl>

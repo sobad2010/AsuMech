@@ -87,6 +87,8 @@ public sealed class DsrP4EyesTuufAi : IScenarioAi<DsrP4EyesState>
 
     private const float AzureWaitDistance = 3.1f;
     private const float AzurePopDistance = 2.6f;
+    private const float FireResistanceDownSeconds = 11.96f;
+    private const float GildedPopHoldSeconds = 2f;
 
     private DsrP4EyesState state = null!;
     private SimWorld world = null!;
@@ -147,7 +149,7 @@ public sealed class DsrP4EyesTuufAi : IScenarioAi<DsrP4EyesState>
         foreach (var (melee, ranged) in PassPartner)
         {
             if (!state.HoldsRed(melee)) spots[(int)melee] = SupportRetreat(melee);
-            else if (Popped(melee)) spots[(int)melee] = Estinien;
+            else if (Popped(melee)) spots[(int)melee] = SupportHandoffSpot(melee);
             spots[(int)ranged] = state.HoldsRed(ranged) ? AzurePop(ranged) : handoffs.GetValueOrDefault(ranged, Estinien);
         }
         return spots;
@@ -159,7 +161,7 @@ public sealed class DsrP4EyesTuufAi : IScenarioAi<DsrP4EyesState>
         var spots = new Vector2?[8];
         foreach (var (melee, ranged) in PassPartner)
         {
-            spots[(int)melee] = state.HoldsRed(melee) ? Estinien : SupportRetreat(melee);
+            spots[(int)melee] = state.HoldsRed(melee) ? SupportHandoffSpot(melee) : SupportRetreat(melee);
             if (!state.HoldsRed(ranged)) spots[(int)ranged] = handoffs.GetValueOrDefault(ranged, Estinien);
             else spots[(int)ranged] = Popped(ranged) ? CornerSpot(HomeCorner[ranged]) : AzurePop(ranged);
         }
@@ -188,8 +190,23 @@ public sealed class DsrP4EyesTuufAi : IScenarioAi<DsrP4EyesState>
         return targets;
     }
 
+    private Vector2 SupportHandoffSpot(PartyRole role) =>
+        HoldingAtGildedOrb(role) ? GildedOrbSpot[role] : Estinien;
+
+    private bool HoldingAtGildedOrb(PartyRole role)
+    {
+        if (world.Party.Get(role) is not { } member) return false;
+        foreach (var status in member.ActiveStatuses)
+        {
+            if (status.StatusId != StatusId.FireResistanceDownII || !status.IsActive) continue;
+            return status.RemainingTime > FireResistanceDownSeconds - GildedPopHoldSeconds;
+        }
+        return false;
+    }
+
     private Vector2 SupportRetreat(PartyRole role)
     {
+        if (HoldingAtGildedOrb(role)) return GildedOrbSpot[role];
         if (!AzureOrb.Keys.All(state.HoldsRed)) return CompletedHandoffWait[role];
         var member = world.Party.Get(role);
         return member != null && MathF.Abs(member.Position.Z) > 1 && member.Position.X > -2
