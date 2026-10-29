@@ -31,8 +31,10 @@ Add this custom repository in Dalamud (`/xlsettings` → Experimental → Custom
 from the plugin installer:
 
 ```
-https://raw.githubusercontent.com/Asunnya/AsuMech/asunnya-release/pluginmaster.json
+https://raw.githubusercontent.com/sobad2010/AsuMech/release/pluginmaster.json
 ```
+
+**Developers:** source lives in a **private** repo; the public repo (`sobad2010/AsuMech`) only holds the manifest branch and release zips. See [tools/TWO_REPOS.md](tools/TWO_REPOS.md).
 
 For upstream AnoMech, see: https://github.com/anomek/MyDalamudPlugins
 
