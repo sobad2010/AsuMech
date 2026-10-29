@@ -16,7 +16,7 @@ internal sealed class SpeedControl
     public void Draw(Core.Game.Game game, string id)
     {
         ImGui.PushID(id);
-        ImGui.TextUnformatted("Speed:");
+        ImGui.TextUnformatted(UiStrings.Speed);
         for (int x = 1; x <= 4; x++)
         {
             ImGui.SameLine();

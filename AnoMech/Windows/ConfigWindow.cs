@@ -16,7 +16,7 @@ public class ConfigWindow : Window, IDisposable
     private string relayPassword;
     private bool askedForLocations;
 
-    public ConfigWindow(Plugin plugin) : base("AnoMech Settings###AnoMechConfig")
+    public ConfigWindow(Plugin plugin) : base(UiStrings.ConfigTitle)
     {
         Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize;
@@ -36,28 +36,28 @@ public class ConfigWindow : Window, IDisposable
     public override void Draw()
     {
         var onInn = configuration.OpenSimMenuOnInn;
-        if (ImGui.Checkbox("Open Sim Menu when entering Inn", ref onInn))
+        if (ImGui.Checkbox(UiStrings.OpenMenuOnInn, ref onInn))
         {
             configuration.OpenSimMenuOnInn = onInn;
             configuration.Save();
         }
 
         var suppressBgm = configuration.SuppressBgm;
-        if (ImGui.Checkbox("Suppress scenario BGM", ref suppressBgm))
+        if (ImGui.Checkbox(UiStrings.SuppressBgm, ref suppressBgm))
         {
             configuration.SuppressBgm = suppressBgm;
             configuration.Save();
         }
 
         var resultMarks = configuration.EnableMechanicResultMarks;
-        if (ImGui.Checkbox("Show mechanic success/failure marks", ref resultMarks))
+        if (ImGui.Checkbox(UiStrings.ResultMarks, ref resultMarks))
         {
             configuration.EnableMechanicResultMarks = resultMarks;
             configuration.Save();
         }
 
         var showSpeed = configuration.ShowSpeedControl;
-        if (ImGui.Checkbox("Show speed control", ref showSpeed))
+        if (ImGui.Checkbox(UiStrings.ShowSpeed, ref showSpeed))
         {
             configuration.ShowSpeedControl = showSpeed;
             configuration.Save();
@@ -66,7 +66,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SetTooltip("Adds the scenario speed buttons and a typed value under God mode in the main window.\nWarning: bots can die at other speeds, since they still run at normal speed.");
 
         var userActions = configuration.EnableUserActions;
-        if (ImGui.Checkbox("Resolve your own actions", ref userActions))
+        if (ImGui.Checkbox(UiStrings.ResolveActions, ref userActions))
         {
             configuration.EnableUserActions = userActions;
             configuration.Save();

@@ -93,8 +93,7 @@ public unsafe class MainWindow : Window, IDisposable
     // Index 0 = Auto (null override); indices 1..8 map to (PartyRole)(idx - 1).
     // Labels are the canonical raid role abbreviations: MT/OT tanks, H1/H2 healers
     // (H1 = regen), M1/M2 melee DPS, R1/R2 ranged DPS (R1 = phys).
-    private static readonly string[] RoleLabels =
-        ["Auto", "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"];
+    private static readonly string[] RoleLabels = UiStrings.RoleLabels;
 
 #if DEBUG
     private readonly DebugMenu debugMenu;
@@ -112,7 +111,7 @@ public unsafe class MainWindow : Window, IDisposable
     }
 
     // The title bar still shows while the window is collapsed for the run.
-    private static string Title(bool failed) => $"{TitleText}{(failed ? " — Failed" : "")}###MainWindow";
+    private static string Title(bool failed) => $"{TitleText}{(failed ? UiStrings.RunFailedTitle : "")}###MainWindow";
 
     public MainWindow(Plugin plugin)
         : base(Title(failed: false))
@@ -316,10 +315,10 @@ public unsafe class MainWindow : Window, IDisposable
         var widest = 0f;
         foreach (var zone in Plugin.Game.Catalog.MenuZones)
         {
-            widest = Math.Max(widest, ImGui.CalcTextSize(zone.Name).X + style.IndentSpacing);
+            widest = Math.Max(widest, ImGui.CalcTextSize(UiStrings.ZoneName(zone)).X + style.IndentSpacing);
             foreach (var phase in Plugin.Game.Catalog.PhasesOf(zone))
                 foreach (var scenario in Plugin.Game.Catalog.ScenariosOf(phase))
-                    widest = Math.Max(widest, ImGui.CalcTextSize(scenario.DisplayName()).X + style.IndentSpacing);
+                    widest = Math.Max(widest, ImGui.CalcTextSize(UiStrings.ScenarioMenuLabel(scenario)).X + style.IndentSpacing);
         }
         var measured = widest
             + style.FramePadding.X * 2
@@ -335,7 +334,7 @@ public unsafe class MainWindow : Window, IDisposable
         // Switching scenarios inside a loaded zone skips the zone reload, so another zone's
         // scenario would run on the wrong territory.
         var lockedZone = Plugin.Game.World.Map.IsInInstance ? _selectedScenario?.Phase.Zone : null;
-        ImGui.TextUnformatted(lockedZone?.Name ?? "Scenarios");
+        ImGui.TextUnformatted(lockedZone is { } lz ? UiStrings.ZoneName(lz) : UiStrings.Scenarios);
         ImGui.Separator();
 
         if (lockedZone != null)
@@ -348,7 +347,7 @@ public unsafe class MainWindow : Window, IDisposable
         foreach (var category in Plugin.Game.Catalog.MenuZones.Select(z => z.Category).Distinct())
         {
             var flags = _pendingCategoryTab == category ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
-            if (!ImGui.BeginTabItem($"{category}###scenario-category-{category}", flags)) continue;
+            if (!ImGui.BeginTabItem($"{UiStrings.Category(category)}###scenario-category-{category}", flags)) continue;
             if (_pendingCategoryTab == category) _pendingCategoryTab = null;
             string? lastExpansion = null;
             foreach (var zone in Plugin.Game.Catalog.MenuZones.Where(z => z.Category == category))
@@ -378,7 +377,7 @@ public unsafe class MainWindow : Window, IDisposable
             containsSelection ? BlendColor(headerColor, SelectionColor, 0.58f) : headerColor);
         ImGui.PushStyleColor(ImGuiCol.HeaderHovered, containsSelection ? SelectionHoveredColor : HoverColor);
         ImGui.PushStyleColor(ImGuiCol.HeaderActive, SelectionActiveColor);
-        var open = ImGui.CollapsingHeader($"{zone.Name}###scenario-zone-{zone.GetType().FullName}");
+        var open = ImGui.CollapsingHeader($"{UiStrings.ZoneName(zone)}###scenario-zone-{zone.GetType().FullName}");
         ImGui.PopStyleColor(3);
         if (containsSelection) DrawSelectionAccent();
         var sectionRight = ImGui.GetItemRectMax().X;
@@ -410,7 +409,7 @@ public unsafe class MainWindow : Window, IDisposable
                 ImGui.PushID(scenario.FullName());
                 var buttonWidth = sectionRight - ImGui.GetCursorScreenPos().X;
                 ImGui.BeginDisabled(mpUnsupported || guest);
-                var clicked = ImGui.Button(scenario.DisplayName(), new Vector2(buttonWidth, 0));
+                var clicked = ImGui.Button(UiStrings.ScenarioMenuLabel(scenario), new Vector2(buttonWidth, 0));
                 ImGui.EndDisabled();
                 if ((mpUnsupported || guest) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                     ImGui.SetTooltip(guest ? "The host picks the scenario." : "This scenario doesn't support multiplayer.");
@@ -455,10 +454,11 @@ public unsafe class MainWindow : Window, IDisposable
         _openZone = scenario.Phase.Zone;
         _pendingCategoryTab = scenario.Phase.Zone.Category;
         _soloMode = false;
-        _selectedStrat = 0;
-        _selectedWaymark = _waymarkMemory.GetValueOrDefault(scenario.Phase.Zone);
-        if (_selectedWaymark < 0 || _selectedWaymark >= scenario.Phase.Zone.WaymarkPresets.Count)
-            _selectedWaymark = 0;
+        _selectedStrat = UiStrings.PreferTuufStratIndex(scenario);
+        if (!_waymarkMemory.TryGetValue(scenario.Phase.Zone, out _selectedWaymark)
+            || _selectedWaymark < 0
+            || _selectedWaymark >= scenario.Phase.Zone.WaymarkPresets.Count)
+            _selectedWaymark = UiStrings.PreferTuufWaymarkIndex(scenario.Phase.Zone);
         // Restore the last region picked for this scenario; ReconcileStrat snaps null to its first region.
         _selectedStratGroup = _stratGroupMemory.GetValueOrDefault(scenario);
         ReconcileStrat();
@@ -470,7 +470,7 @@ public unsafe class MainWindow : Window, IDisposable
         }
     }
 
-    private const string MpDisabledReason = "Disabled in a multiplayer session.";
+    private const string MpDisabledReason = UiStrings.MpDisabled;
 
     // Distinct, ordered region labels from the strats' IScenarioAi.Group; empty = ungrouped.
     private static IReadOnlyList<string> StratGroups(IScenario scenario)
@@ -488,7 +488,7 @@ public unsafe class MainWindow : Window, IDisposable
         {
             DrawScenarioPanelToggle();
             ImGui.SameLine();
-            ImGui.TextDisabled("Select a scenario");
+            ImGui.TextDisabled(UiStrings.SelectScenario);
             if (inSession) DrawSession();
             else DrawMultiplayerButton();
             return;
@@ -589,7 +589,7 @@ public unsafe class MainWindow : Window, IDisposable
         if (!GroupsContain(groups, _selectedStratGroup)) _selectedStratGroup = groups[0];
         var inRegion = RegionStrats(strats);
         if (inRegion.Count == 0) _selectedStrat = -1;
-        else if (!inRegion.Contains(_selectedStrat)) _selectedStrat = inRegion[0];
+        else if (!inRegion.Contains(_selectedStrat)) _selectedStrat = UiStrings.PreferTuufStratIndex(inRegion, strats);
     }
 
     private List<int> RegionStrats(IReadOnlyList<IScenarioAi> strats)
@@ -613,7 +613,7 @@ public unsafe class MainWindow : Window, IDisposable
         var hasSetup = !inSession || HasStratChoice(scenario) || HasWaymarkChoice(scenario);
         if (hasSetup)
         {
-            if (ImGui.TreeNodeEx("Setup###scenario-setup-v3",
+            if (ImGui.TreeNodeEx($"{UiStrings.Setup}###scenario-setup-v3",
                     ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.FramePadding))
             {
                 if (SettingsGrid.Begin("##scenario-setup-grid"))
@@ -628,7 +628,7 @@ public unsafe class MainWindow : Window, IDisposable
             ImGui.Spacing();
         }
 
-        if (ImGui.TreeNodeEx("Scenario settings###scenario-config-v3",
+        if (ImGui.TreeNodeEx($"{UiStrings.ScenarioSettings}###scenario-config-v3",
                 ImGuiTreeNodeFlags.FramePadding))
         {
             if (inSession)
@@ -669,9 +669,9 @@ public unsafe class MainWindow : Window, IDisposable
 
         DrawScenarioPanelToggle();
         ImGui.SameLine();
-        ImGui.TextDisabled($"{scenario.Phase.Zone.Name} —");
+        ImGui.TextDisabled($"{UiStrings.ZoneName(scenario.Phase.Zone)} —");
         ImGui.SameLine(0f, 4f * uiScale);
-        ImGui.TextUnformatted(scenario.DisplayName());
+        ImGui.TextUnformatted(UiStrings.ScenarioMenuLabel(scenario));
         DrawRunStatus(game);
 
         var dividerColor = StyleColor(ImGuiCol.TextDisabled);
@@ -703,18 +703,18 @@ public unsafe class MainWindow : Window, IDisposable
     // The live run's state, else how the selected scenario's last run ended.
     private (string Label, Vector4 Color) RunStatus(AnoMech.Core.Game.Game game)
     {
-        var idle = ("Idle", StyleColor(ImGuiCol.TextDisabled));
-        if (game.LastRun is not { } run) return RunActive ? ("Running", RunningColor) : idle;
+        var idle = (UiStrings.RunStatusLabel("Idle"), StyleColor(ImGuiCol.TextDisabled));
+        if (game.LastRun is not { } run) return RunActive ? (UiStrings.RunStatusLabel("Running"), RunningColor) : idle;
         if (run.Ended && run.Scenario != _selectedScenario) return idle;
         var status = run.Status;
-        if (IsFailed(status)) return ("Failed", FailedColor);
+        if (IsFailed(status)) return (UiStrings.RunStatusLabel("Failed"), FailedColor);
         return status switch
         {
-            SessionStatus.Succeeded => ("Cleared", RunningColor),
-            SessionStatus.CompletedWithMistake => ("Cleared with mistakes", MistakeColor),
-            _ when run.Ended => ("Stopped", StyleColor(ImGuiCol.TextDisabled)),
-            SessionStatus.RunningWithMistake => ("Running with mistakes", MistakeColor),
-            _ => ("Running", RunningColor),
+            SessionStatus.Succeeded => (UiStrings.RunStatusLabel("Cleared"), RunningColor),
+            SessionStatus.CompletedWithMistake => (UiStrings.RunStatusLabel("Cleared with mistakes"), MistakeColor),
+            _ when run.Ended => (UiStrings.RunStatusLabel("Stopped"), StyleColor(ImGuiCol.TextDisabled)),
+            SessionStatus.RunningWithMistake => (UiStrings.RunStatusLabel("Running with mistakes"), MistakeColor),
+            _ => (UiStrings.RunStatusLabel("Running"), RunningColor),
         };
     }
 
@@ -778,7 +778,7 @@ public unsafe class MainWindow : Window, IDisposable
             DrawStartButton(game, actionSize);
         else if (RunActive)
         {
-            if (DrawSemanticButton("Stop", actionSize, StopColor))
+            if (DrawSemanticButton(UiStrings.Stop, actionSize, StopColor))
                 plugin.Runs.Reset();
         }
         else
@@ -787,13 +787,13 @@ public unsafe class MainWindow : Window, IDisposable
         if (!inSession && RunLive(game))
         {
             ImGui.SameLine();
-            if (DrawSemanticButton("Stop###stop", actionSize, StopRunColor))
+            if (DrawSemanticButton($"{UiStrings.Stop}###stop", actionSize, StopRunColor))
                 plugin.Runs.Reset();
         }
         else if (game.World.Map.IsInInstance)
         {
             ImGui.SameLine();
-            if (DrawSemanticButton(inSession ? "Return to inn###leave-instance" : "Leave###leave-instance", actionSize, StopColor))
+            if (DrawSemanticButton(inSession ? $"{UiStrings.ReturnToInn}###leave-instance" : $"{UiStrings.Leave}###leave-instance", actionSize, StopColor))
                 plugin.Runs.Leave();
             if (inSession && ImGui.IsItemHovered())
                 ImGui.SetTooltip("Takes the whole party back to the inn. Everyone stays in the session.");
@@ -829,7 +829,7 @@ public unsafe class MainWindow : Window, IDisposable
         var selection = Selection;
         var refusal = plugin.Runs.StartRefusal(selection, solo);
         var restart = game.ActiveScenario is { } active && active == _selectedScenario;
-        var label = plugin.Runs.StartWaitingOn != null ? "Waiting to start..." : restart ? "Restart" : "Start";
+        var label = plugin.Runs.StartWaitingOn != null ? UiStrings.WaitingToStart : restart ? UiStrings.Restart : UiStrings.Start;
         ImGui.BeginDisabled(refusal != null);
         if (DrawSemanticButton($"{label}###start", size, restart && RunLive(game) ? RestartLiveColor : StartColor))
             plugin.Runs.Start(selection, solo);
@@ -898,7 +898,7 @@ public unsafe class MainWindow : Window, IDisposable
         if (!_selectedScenario!.SupportsSolo) return;
         var running = RunLive(game);
         ImGui.BeginDisabled(running);
-        ImGui.Checkbox("Solo", ref _soloMode);
+        ImGui.Checkbox(UiStrings.Solo, ref _soloMode);
         ImGui.EndDisabled();
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(running
@@ -928,7 +928,7 @@ public unsafe class MainWindow : Window, IDisposable
         if (mpActive) game.GodMode = false;
         ImGui.BeginDisabled(mpActive);
         var god = game.GodMode;
-        if (ImGui.Checkbox("God mode", ref god)) game.GodMode = god;
+        if (ImGui.Checkbox(UiStrings.GodMode, ref god)) game.GodMode = god;
         ImGui.EndDisabled();
         if (mpActive && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(MpDisabledReason);
@@ -937,14 +937,14 @@ public unsafe class MainWindow : Window, IDisposable
         if (mpActive) practice.AutoRestart = false;
         ImGui.BeginDisabled(mpActive);
         var autoRestart = practice.AutoRestart;
-        if (ImGui.Checkbox("Auto-restart", ref autoRestart)) practice.AutoRestart = autoRestart;
+        if (ImGui.Checkbox(UiStrings.AutoRestart, ref autoRestart)) practice.AutoRestart = autoRestart;
         ImGui.EndDisabled();
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(mpActive
                 ? MpDisabledReason
                 : "Restart the same scenario immediately after a successful run. A failed run turns this back off.");
         ImGui.SameLine();
-        ImGui.TextDisabled($"Streak: {practice.Streak}");
+        ImGui.TextDisabled($"{UiStrings.Streak}{practice.Streak}");
     }
 
     // Drawn below the strat picker for scenarios that declare WaymarkPresets. _selectedWaymark
@@ -958,9 +958,9 @@ public unsafe class MainWindow : Window, IDisposable
         if (_selectedWaymark < 0 || _selectedWaymark >= presets.Count) _selectedWaymark = 0;
 
         var labels = new string[presets.Count];
-        for (var i = 0; i < presets.Count; i++) labels[i] = presets[i].Name;
+        for (var i = 0; i < presets.Count; i++) labels[i] = UiStrings.WaymarkPreset(presets[i].Name);
 
-        SettingsGrid.Row("Waymarks:");
+        SettingsGrid.Row(UiStrings.Waymarks);
         ImGui.SetNextItemWidth(SetupDropdownWidth * ImGuiHelpers.GlobalScale);
         if (ImGui.Combo("##waymarks", ref _selectedWaymark, labels, labels.Length))
         {
@@ -973,7 +973,7 @@ public unsafe class MainWindow : Window, IDisposable
     private void DrawRoleSelector()
     {
         var idx = _roleOverride is { } role ? (int)role + 1 : 0;
-        SettingsGrid.Row("Role:");
+        SettingsGrid.Row(UiStrings.Role);
         ImGui.SetNextItemWidth(SetupDropdownWidth * ImGuiHelpers.GlobalScale);
         if (ImGui.Combo("##role", ref idx, RoleLabels, RoleLabels.Length))
             _roleOverride = idx == 0 ? null : (PartyRole)(idx - 1);
@@ -994,20 +994,20 @@ public unsafe class MainWindow : Window, IDisposable
         else
         {
             var labels = new string[strats.Count];
-            for (var i = 0; i < strats.Count; i++) labels[i] = strats[i].Name;
-            SettingsGrid.Row("Strategy:");
+            for (var i = 0; i < strats.Count; i++) labels[i] = UiStrings.StratName(strats[i].Name);
+            SettingsGrid.Row(UiStrings.Strategy);
             ImGui.SetNextItemWidth(SetupDropdownWidth * ImGuiHelpers.GlobalScale);
             ImGui.Combo("##strat", ref _selectedStrat, labels, labels.Length);
         }
         ImGui.EndDisabled();
         if (mpGuest && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-            ImGui.SetTooltip("Only the host's selection is used in multiplayer.");
+            ImGui.SetTooltip(UiStrings.MpHostStrat);
     }
 
     // Region buttons + a region-filtered strat dropdown, over the pick ReconcileStrat keeps valid.
     private void DrawGroupedStratSelector(IReadOnlyList<IScenarioAi> strats, IReadOnlyList<string> groups)
     {
-        SettingsGrid.Row("Region:");
+        SettingsGrid.Row(UiStrings.Region);
         for (var i = 0; i < groups.Count; i++)
         {
             if (i > 0) ImGui.SameLine();
@@ -1026,16 +1026,16 @@ public unsafe class MainWindow : Window, IDisposable
         }
 
         var filtered = RegionStrats(strats);
-        SettingsGrid.Row("Strategy:");
+        SettingsGrid.Row(UiStrings.Strategy);
         if (filtered.Count == 0)
         {
-            ImGui.TextDisabled("(no strats for this region yet)");
+            ImGui.TextDisabled(UiStrings.NoStratsInRegion);
             return;
         }
 
         var localIdx = filtered.IndexOf(_selectedStrat);
         var labels = new string[filtered.Count];
-        for (var i = 0; i < filtered.Count; i++) labels[i] = strats[filtered[i]].Name;
+        for (var i = 0; i < filtered.Count; i++) labels[i] = UiStrings.StratName(strats[filtered[i]].Name);
         ImGui.SetNextItemWidth(SetupDropdownWidth * ImGuiHelpers.GlobalScale);
         if (ImGui.Combo("##strat", ref localIdx, labels, labels.Length))
             _selectedStrat = filtered[localIdx];
@@ -1062,8 +1062,8 @@ public unsafe class MainWindow : Window, IDisposable
     private void DrawLocationHint()
     {
         if (ZoneControl.IsInInn()) return;
-        ImGui.TextDisabled("Scenarios only run in an inn");
+        ImGui.TextDisabled(UiStrings.InnOnlyHint);
         ImGui.SameLine();
-        ImGuiComponents.HelpMarker("Scenarios can only be started from an inn — return to one to run a scenario.");
+        ImGuiComponents.HelpMarker(UiStrings.InnOnlyHelp);
     }
 }

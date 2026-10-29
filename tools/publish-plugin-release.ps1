@@ -7,6 +7,14 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+function Resolve-GhCli {
+    $cmd = Get-Command gh -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    $default = Join-Path ${env:ProgramFiles} "GitHub CLI\gh.exe"
+    if (Test-Path $default) { return $default }
+    throw "GitHub CLI (gh) not found. Install with: winget install GitHub.cli"
+}
+$gh = Resolve-GhCli
 $root = Resolve-Path "$PSScriptRoot\.."
 $out = Join-Path $root "AnoMech\bin\x64\Debug"
 $zip = Join-Path $out "latest.zip"
@@ -33,20 +41,21 @@ if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path ($files | ForEach-Object { Join-Path $out $_ }) -DestinationPath $zip -Force
 Write-Host "Packed $zip"
 
-gh auth status | Out-Null
+& $gh auth setup-git | Out-Null
+& $gh auth status | Out-Null
 
 $tag = "v$Version"
 $releaseExists = $false
 try {
-    & gh release view $tag --repo $Repo 2>$null | Out-Null
+    & $gh release view $tag --repo $Repo 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) { $releaseExists = $true }
 } catch { }
 
 if ($releaseExists) {
     Write-Host "Release $tag exists; uploading latest.zip asset..."
-    & gh release upload $tag $zip --repo $Repo --clobber
+    & $gh release upload $tag $zip --repo $Repo --clobber
 } else {
-    & gh release create $tag $zip --repo $Repo --title "AnoMech $Version" --notes "Dalamud API 13 build for 繁中客户端."
+    & $gh release create $tag $zip --repo $Repo --title "AnoMech $Version" --notes "Dalamud API 13 build for 繁中客户端."
 }
 
 $tmpdir = Join-Path $env:TEMP "asumech-manifest-$([Guid]::NewGuid().ToString('N'))"
