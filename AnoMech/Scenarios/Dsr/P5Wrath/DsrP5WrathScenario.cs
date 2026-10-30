@@ -68,6 +68,7 @@ public sealed class DsrP5WrathScenario : IScenario
     private const float AscalonsMightDamage = 0.45f;
     private const float KnightLandDelay = 0.35f;
     private const float EffectCarrierLinger = 3f;
+    private const float ThordanWarpHideDelay = 0.8f;
 
     private SimWorld world = null!;
     private SimParty party = null!;
@@ -127,7 +128,12 @@ public sealed class DsrP5WrathScenario : IScenario
 
         world.Events.Add(Wrath, () => CastSelf(thordan, ActionId.WrathOfTheHeavens, 3.7f));
         world.Events.Add(Wrath + 3.98f, () => PlayEffect(thordan, ActionId.WrathOfTheHeavens, 1.1f));
-        world.Events.Add(Wrath + 7.07f, () => thordan?.SetTargetable(false));
+        world.Events.Add(Wrath + 7.07f, () =>
+        {
+            thordan?.SetTargetable(false);
+            thordan?.PlayActionTimeline(TimelineId.WarpStart);
+        });
+        world.Events.Add(Wrath + 7.07f + ThordanWarpHideDelay, () => thordan?.SetVisible(false));
         world.Events.Add(Wrath + 8.30f, SpawnDragonsAndKnights);
         world.Events.Add(Wrath + 8.60f, () => { foreach (var k in new[] { vedrfolnir, dragoons[0], dragoons[1], paulecrain }) k?.PlayActionTimeline(TimelineId.WarpEnd); });
         world.Events.Add(Wrath + 8.60f, () => { darkscale?.PlayActionTimeline(TimelineId.DragonAppear); vidofnir?.PlayActionTimeline(TimelineId.DragonAppear); });
@@ -156,7 +162,12 @@ public sealed class DsrP5WrathScenario : IScenario
         world.Events.Add(Wrath + 29.04f, Cauterize);
         world.Events.Add(EmptyDimensionLands, EmptyDimension);
         world.Events.Add(ThunderstruckEnds, ChainLightningBursts);
-        world.Events.Add(Wrath + 30.25f, () => thordan?.SetTargetable(true));
+        world.Events.Add(Wrath + 30.25f, () =>
+        {
+            thordan?.SetVisible(true);
+            thordan?.PlayActionTimeline(TimelineId.WarpEnd);
+            thordan?.SetTargetable(true);
+        });
         world.Events.Add(Wrath + 30.33f, () => CastSelf(thordan, ActionId.AncientQuaga, 5.7f));
         world.Events.Add(Wrath + 33.00f, () => { foreach (var k in new[] { charibert, grinnaux, darkscale, vidofnir, vedrfolnir }) k?.FadeOut(); });
         world.Events.Add(Wrath + 36.32f, () => Raidwide(ActionId.AncientQuaga, AncientQuagaDamage));
@@ -526,7 +537,7 @@ public sealed class DsrP5WrathScenario : IScenario
             Level: Level,
             Targetable: false,
             EnemyList: EnemyListMode.Never,
-            Visibility: SimEnemy.LegacyVisibility(true, true),
+            Visibility: SpawnVisibility.InvisibleHelper,
             Placement: placement));
 
     private static Placement Facing(Vector3 at) => new(at, RotationTowards(at, Vector3.Zero));
